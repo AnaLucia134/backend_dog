@@ -18,3 +18,4 @@ router.get('/breed/:breed/:sub/random', dogService.getRandomImageBySubBreed);
 router.get('/breed/:breed/:sub/random/:n', dogService.getMultipleRandomBySubBreed);
 
 module.exports = router;
+

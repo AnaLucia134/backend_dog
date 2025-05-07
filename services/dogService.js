@@ -107,3 +107,4 @@ exports.getRandomDogWithAlt = async (req, res) => {
     res.status(500).json({ error: 'Error obteniendo imagen aleatoria con descripción' });
   }
 };
+
