@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../index');
+const app = require('../App');
 
 describe('GET /api/dogs/breeds', () => {
   it('should return list of breeds', async () => {
@@ -8,3 +8,4 @@ describe('GET /api/dogs/breeds', () => {
     expect(res.body).toHaveProperty('message');
   });
 });
+
