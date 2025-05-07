@@ -11,7 +11,7 @@ pipeline {
             steps {
                 git branch: 'develop', 
                 url: 'https://github.com/AnaLucia134/backend_dog.git',
-                credentialsId: ' AnaLucia134'
+                credentialsId: 'github-credentials' // Asegúrate de crear estas credenciales
             }
         }
 
@@ -81,4 +81,3 @@ pipeline {
         }
     }
 }
-
