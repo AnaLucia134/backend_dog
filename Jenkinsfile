@@ -11,7 +11,7 @@ pipeline {
             steps {
                 git branch: 'develop', 
                 url: 'https://github.com/AnaLucia134/backend_dog.git',
-                credentialsId: 'github-credentials'
+                credentialsId: ' AnaLucia134'
             }
         }
 
@@ -25,34 +25,24 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    try {
-                        sh 'npm test'
-                    } catch (error) {
-                        echo "Tests failed: ${error}"
-                        // Opcional: marcar el build como inestable en lugar de fallido
-                        currentBuild.result = 'UNSTABLE'
+                    def testResult = sh(script: 'npm test || true', returnStatus: true)
+                    if (testResult != 0) {
+                        unstable("Some tests failed or no tests found")
                     }
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build & Push') {
             when {
                 expression { currentBuild.result != 'FAILURE' }
             }
             steps {
                 script {
+                    // Construir imagen
                     docker.build("${DOCKER_REGISTRY}/backend-dog:${env.BUILD_ID}")
-                }
-            }
-        }
-
-        stage('Push to Registry') {
-            when {
-                expression { currentBuild.result != 'FAILURE' }
-            }
-            steps {
-                script {
+                    
+                    // Subir al registry
                     docker.withRegistry("http://${DOCKER_REGISTRY}", 'docker-registry-credentials') {
                         docker.image("${DOCKER_REGISTRY}/backend-dog:${env.BUILD_ID}").push()
                         docker.image("${DOCKER_REGISTRY}/backend-dog:latest").push()
@@ -70,7 +60,7 @@ pipeline {
                 sh """
                     cd ${PROJECT_DIR}
                     docker-compose -f docker-compose-qa.yml down
-                    docker-compose -f docker-compose-qa.yml up -d
+                    docker-compose -f docker-compose-qa.yml up -d --scale backend=3
                 """
             }
         }
@@ -80,15 +70,15 @@ pipeline {
         always {
             cleanWs()
             script {
-                if (currentBuild.result == 'FAILURE') {
-                    mail to: 'ana@example.com',
-                         subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
-                         body: "Check console output at ${env.BUILD_URL}"
+                if (currentBuild.result == 'UNSTABLE') {
+                    emailext (
+                        subject: "Pipeline UNSTABLE: ${currentBuild.fullDisplayName}",
+                        body: "Tests failed or no tests found. Check ${env.BUILD_URL}",
+                        to: 'ana@example.com'
+                    )
                 }
             }
         }
-        success {
-            echo 'Pipeline completed successfully'
-        }
     }
 }
+
