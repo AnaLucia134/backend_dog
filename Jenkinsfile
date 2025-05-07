@@ -1,57 +1,47 @@
 pipeline {
     agent any
-    
-    environment {
-        DOCKER_REGISTRY = "192.241.148.118:5000"
-        IMAGE_NAME = "backend_dog"
-    }
-    
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'develop', url: 'https://github.com/AnaLucia134/backend_dog.git'
             }
         }
-        
+
         stage('Test') {
             steps {
-                sh 'npm install'
-                sh 'npm test || true' // Temporal hasta que agregues tests
+                sh 'npm test'
             }
         }
-        
-        stage('Build Docker Image') {
+
+        stage('Build') {
             steps {
-                script {
-                    docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:${env.BUILD_NUMBER}")
-                }
+                sh 'docker build -t 192.241.148.118:5000/backend-dog:latest .'
             }
         }
-        
-        stage('Push to Registry') {
+
+        stage('Push') {
             steps {
-                script {
-                    docker.withRegistry("http://${DOCKER_REGISTRY}", 'docker-registry-credentials') {
-                        docker.image("${DOCKER_REGISTRY}/${IMAGE_NAME}:${env.BUILD_NUMBER}").push()
-                    }
-                }
+                sh 'docker push 192.241.148.118:5000/backend-dog:latest'
             }
         }
-        
-        stage('Deploy to QA') {
+
+        stage('Deploy QA') {
+            when {
+                branch 'develop'
+            }
             steps {
-                sh 'docker-compose -f /dog_project/docker-compose-qa.yml up -d --scale backend=3 --scale frontend=3'
+                sh 'docker-compose -f /op/dog_project/docker-compose-qa.yml up -d'
             }
         }
-        
-        stage('Deploy to Production') {
+
+        stage('Deploy Prod') {
             when {
                 branch 'main'
             }
             steps {
-                sh 'docker-compose -f /dog_project/docker-compose-prod.yml up -d --scale backend=2 --scale frontend=2'
+                sh 'docker-compose -f /op/dog_project/docker-compose-prod.yml up -d'
             }
         }
     }
 }
-
