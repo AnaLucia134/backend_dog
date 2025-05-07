@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/AnaLucia134/backend_dog.git'
+                git branch: 'develop', url: 'https://github.com/AnaLucia134/backend_dog.git'
             }
         }
         
@@ -54,3 +54,4 @@ pipeline {
         }
     }
 }
+
