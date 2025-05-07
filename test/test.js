@@ -1,5 +1,5 @@
 const request = require('supertest');
-import App from './App';
+const App = require('./App');
 
 describe('GET /api/dogs/breeds', () => {
   it('should return list of breeds', async () => {
